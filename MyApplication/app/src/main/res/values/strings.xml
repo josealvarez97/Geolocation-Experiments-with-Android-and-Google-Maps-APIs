@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">My Application</string>
+    <string name="HworldResource">Hello Universe! atte: Jose xD</string>
+    <string name="random_heading">Here is a random number between 0 and %1d</string>
+</resources>
