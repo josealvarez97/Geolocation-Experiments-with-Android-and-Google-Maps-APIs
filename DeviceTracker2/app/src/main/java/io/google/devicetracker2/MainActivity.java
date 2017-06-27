@@ -3,19 +3,18 @@ package io.google.devicetracker2;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.widget.Button;
+import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.location.FusedLocationProviderApi;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -25,15 +24,22 @@ import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.vision.text.Text;
-
-import static io.google.devicetracker2.R.id.textview1;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
+    // LOCATION STUFF
     private FusedLocationProviderClient mFusedLocationClient;
     private Location mCurrentLocation;
     private LocationRequest mLocationRequest;
@@ -42,30 +48,71 @@ public class MainActivity extends AppCompatActivity {
 
     protected final static String REQUESTING_LOCATION_UPDATES_KEY = "requesting-location-updates-key";
 
+    // FIREBASE DATABASE STUFF
+    FirebaseDatabase mDatabase;
+    DatabaseReference mDatabaseReference;
+    DatabaseReference mMyRef;
+
+    // FIREBASE AUTHENTICATION STUFF
+    private FirebaseAuth mAuth;
+
+    // OTHER STUFF
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
+        // Initializing LOCATION
         createLocationRequest();
         getCurrentLocation();
 
 
+        // Initializing AUTHENTICATION
+        mAuth = FirebaseAuth.getInstance();
+        //createAccount("alvarez.jo.2017@gmail.com", "superPikachu");
+        signIn("alvarez.jo.2017@gmail.com", "superPikachu");
+        //FirebaseUser theFbUser = mAuth.getCurrentUser();
+
+
+        // Initializing DATABASE
+        initializeDatabase();
+        writeNewUserToDatabase(getCurrentUserId(), getCurrentUser(mAuth.getCurrentUser()).username, getCurrentUser(mAuth.getCurrentUser()).email);
+        //writeNewUserToDatabase("JaviId", "displayName", "afuckingemail");
+        //updateUserEmail("JaviId", "j.alvarez@minerva.kgi.edu");
+        //mDatabase.getReference("JoseId").addValueEventListener(userListener);
+        //mDatabase.getReference("JoseId").addListenerForSingleValueEvent(userListener);
+
+
+
+
+
+        // Working out LOCATION updates
         mLocationCallback = new LocationCallback () {
             @Override
             public void onLocationResult(LocationResult locationResult) {
                 for(Location location : locationResult.getLocations()) {
                     //UpdateUI with location data
                     // ...
+
+                    // Update Current Location
                     mCurrentLocation = location;
-                    updateUI();
+
+                    // UpdateUserLocationOnDatabase
+                    updateUserLocationOnDatabase(getCurrentUserId(), mCurrentLocation);
+
+                    // Update UserInterface
+                    updateUILocation(/*Maybe I'll add an overload here with the location*/);
                 }
             }
         };
 
-        //updateValuesFromBundle(savedInstanceState);
+        //updateValuesFromBundle(savedInstanceState); // Really need to know what's going on here...
 
 
 
@@ -103,7 +150,8 @@ public class MainActivity extends AppCompatActivity {
 
                                 mCurrentLocation = location;
 
-                                //updateUI();
+                                //updateUILocation();
+
 
 
                             }
@@ -225,16 +273,201 @@ public class MainActivity extends AppCompatActivity {
         // ...
 
         // Update UI to match restored state
-        updateUI();
+        updateUILocation();
     }
 
 
-    public void updateUI(){
-        double latitud = mCurrentLocation.getLatitude();
-        double longitud = mCurrentLocation.getLongitude();
-        String locationStr = Double.toString(latitud) + ", " + Double.toString(longitud);
+
+    public void initializeDatabase() {
+        mDatabase = FirebaseDatabase.getInstance();
+        mDatabaseReference = mDatabase.getReference();
+    }
+    public void writeToDatabase(){
+        mDatabase = FirebaseDatabase.getInstance();
+        mMyRef = mDatabase.getReference("message");
+
+        mMyRef.setValue("Hello, World!");
+    }
+    public void writeNewUserToDatabase(String userId, String name, String email) {
+        User user = new User(name, email, 0.0, 0.0);
+        mDatabaseReference.child("users").child(userId).setValue(user);
+    }
+    public void updateUserEmail(String userID, String email) {
+        mDatabaseReference.child("users").child(userID).child("email").setValue(email);
+    }
+    public void updateUserLocationOnDatabase(String userID, Location currentLocation) {
+        double latitude = currentLocation.getLatitude();
+        double longitude = currentLocation.getLongitude();
+        mDatabaseReference.child("users").child(userID).child("latitude").setValue(latitude);
+        mDatabaseReference.child("users").child(userID).child("longitude").setValue(longitude);
+    }
+
+
+    public void readFromDatabase() {
+
+        // This only read or listens from mMyRef, which is a reference to "message", which only has hello world until now
+        // Read from the database
+        mMyRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // This method is called once with the initial value and again
+                // whenever data at this location is updated.
+
+                // I'm only adding "message" = hello world to the text View in the UI
+                String value = dataSnapshot.getValue(String.class);
+                TextView locationView = (TextView) findViewById(R.id.textview1);
+                String text = locationView.getText().toString();
+                text = text + value;
+                locationView.setText(text);
+
+
+                Log.d(TAG, "Value is: " + value);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", databaseError.toException());
+
+            }
+        });
+    }
+
+
+    // This is a Listener for listening to a User object stored in the database.
+    ValueEventListener userListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            // Get User object and use the values to update the UI or other stuff
+            User user = dataSnapshot.getValue(User.class);
+            //...
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            // Getting User failed, log a message
+            Log.w(TAG, "loadPost:onCancelled", databaseError.toException());
+        }
+    };
+
+
+
+    // CHECK CURRENT AUTH STATE
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-full) and update UI accordingly
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI(currentUser);
+    }
+
+    // SIGN UP NEW USERS
+    public void createAccount(String email, String password) {
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d(TAG, "createUserWithEmail:success");
+                    FirebaseUser fbUser = mAuth.getCurrentUser();
+                    updateUI(fbUser);
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                    Toast.makeText(MainActivity.this, "Authentication failed. CreateAccount",
+                            Toast.LENGTH_SHORT).show();
+                    updateUI(null);
+                }
+
+                // ...
+            }
+        });
+        //Add a form to register new users with their email and password and call this new method when it is submitted. You can see an example in our quickstart sample.
+    }
+
+
+    // SIGN IN EXISTING USERS
+    public void signIn(String email, String password) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "signInWithEmail:success");
+                            FirebaseUser fbUser = mAuth.getCurrentUser();
+                            updateUI(fbUser);
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "signInWithEmail:failure", task.getException());
+                            Toast.makeText(MainActivity.this, "Authentication failed. Sign In",
+                                    Toast.LENGTH_SHORT).show();
+                            updateUI(null);
+                        }
+                    }
+
+                    //...
+                });
+    }
+    // Add a form to sign in users with their email and password and call this new method when it is submitted. You can see an example in our quickstart sample.
+
+
+    public User getCurrentUser(FirebaseUser fbUser) {
+
+        //FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+
+
+        if (fbUser != null) {
+            // Name, email address, and profile photo Url
+            String name = fbUser.getDisplayName();
+            String email = fbUser.getEmail();
+            //Uri photoUrl = fbUser.getPhotoUrl();
+
+            // Check if user's email is verified
+            //boolean emailVerified = fbUser.isEmailVerified();
+
+            // The user's ID, unique to the Firebase project. Do NOT use this value to
+            // authenticate with your backend server, if you have one. Use
+            // FirebaseUser.getToken() instead.
+            //String uid = user.getUid();
+
+            User user = new User(name, email, 0.0, 0.0);
+
+            return user;
+
+        } else {
+            return null;
+        }
+    }
+    public String getCurrentUserId() {
+        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (fbUser != null) {
+            return fbUser.getUid();
+        } else {
+            return null;
+        }
+
+    }
+
+
+    public void updateUILocation(){
+        double latitude = mCurrentLocation.getLatitude();
+        double longitude = mCurrentLocation.getLongitude();
+
+        // REALLY MAKING BULSHIT WITH THE INTERFACE HERE... FIX REQUIRED...
+        String locationStr = Double.toString(latitude) + ", " + Double.toString(longitude);
         TextView locationView = (TextView) findViewById(R.id.textview1);
-
         locationView.setText(locationStr);
+
+        //writeToDatabase(); Just writes hello world to the database
+        //readFromDatabase(); Only listen and adds hello world to text view
+
+
     }
+    public void updateUI(FirebaseUser fbUser) {
+        User user = getCurrentUser(fbUser);
+    }
+
 }

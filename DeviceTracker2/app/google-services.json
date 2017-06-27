@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "502111491266",
+    "firebase_url": "https://devicetracker2-37e4b.firebaseio.com",
+    "project_id": "devicetracker2-37e4b",
+    "storage_bucket": "devicetracker2-37e4b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:502111491266:android:fecd0d76ae363d1c",
+        "android_client_info": {
+          "package_name": "io.google.devicetracker2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "502111491266-pq6t2a485eco7v9rcsc9qjvi81pnh70m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.google.devicetracker2",
+            "certificate_hash": "b93db8c201ddce1a50a5c515c372b94414c36218"
+          }
+        },
+        {
+          "client_id": "502111491266-cu4llor78ecgphsldch56reib3pk313p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBks6atpJxTvOgzmIO3M5Qz13a9YSNg94E"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "502111491266-cu4llor78ecgphsldch56reib3pk313p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
