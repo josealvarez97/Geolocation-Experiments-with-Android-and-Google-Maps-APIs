@@ -1,5 +1,6 @@
 package io.google.devicetracker2;
 
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -37,6 +38,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import static io.google.devicetracker2.CredentialsActivity.VALID_EMAIL;
+import static io.google.devicetracker2.CredentialsActivity.VALID_PASSWORD;
+
 public class MainActivity extends AppCompatActivity {
 
     // LOCATION STUFF
@@ -56,9 +60,17 @@ public class MainActivity extends AppCompatActivity {
     // FIREBASE AUTHENTICATION STUFF
     private FirebaseAuth mAuth;
 
+
     // OTHER STUFF
     private static final String TAG = MainActivity.class.getSimpleName();
-
+    private static final String ORDERS_QUEUE = "ordersQueue";
+    private static final String ON_WAY_ORDERS = "onWayOrders";
+    private static final String USERS = "users";
+    private static final String MOTOR_GUYS = "motorGuys";
+    private static final String ORDER_ASSIGNMENT= "orderAssignment";
+    private static final String NO_ASSIGNED = "NO_ASSIGNED";
+    private static final String ORDER_DESCRIPTIONS = "orderDescriptions";
+    private String mCurrentTypeOfUser = "users";
 
 
 
@@ -68,6 +80,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Getting Information from CredentialsActivity
+        Intent intentSent = getIntent();
+        String validatedEmail = intentSent.getStringExtra(VALID_EMAIL);
+        String validatedPassword = intentSent.getStringExtra(VALID_PASSWORD);
+
+
+
         // Initializing LOCATION
         createLocationRequest();
         getCurrentLocation();
@@ -76,13 +95,15 @@ public class MainActivity extends AppCompatActivity {
         // Initializing AUTHENTICATION
         mAuth = FirebaseAuth.getInstance();
         //createAccount("alvarez.jo.2017@gmail.com", "superPikachu");
-        signIn("alvarez.jo.2017@gmail.com", "superPikachu");
-        //FirebaseUser theFbUser = mAuth.getCurrentUser();
+        signIn(validatedEmail, validatedPassword);
+        //FirebaseUser theFbUser = mAuth.getCurrentUserObj();
+
+
 
 
         // Initializing DATABASE
         initializeDatabase();
-        writeNewUserToDatabase(getCurrentUserId(), getCurrentUser(mAuth.getCurrentUser()).username, getCurrentUser(mAuth.getCurrentUser()).email);
+        //writeNewUserToDatabase(getCurrentFbUserId(), getCurrentUserObj(mAuth.getCurrentUser()).username, getCurrentUserObj(mAuth.getCurrentUser()).email);
         //writeNewUserToDatabase("JaviId", "displayName", "afuckingemail");
         //updateUserEmail("JaviId", "j.alvarez@minerva.kgi.edu");
         //mDatabase.getReference("JoseId").addValueEventListener(userListener);
@@ -90,7 +111,22 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+        // Adjusting a couple of things
+        if (isUserAClient()) {
+            mCurrentTypeOfUser = "users";
+            Toast.makeText(MainActivity.this, "USER IS CLIENT...",
+                    Toast.LENGTH_LONG).show();
+            //pushOrderToFirebaseDatabase("2 PIEZAS DEL POLLO MAS RICO POR FAVOR");
 
+        } else if (isUserAMotorGuy()) {
+            mCurrentTypeOfUser = "motorGuys";
+            Toast.makeText(MainActivity.this, "USER IS MOTOR GUY...",
+                    Toast.LENGTH_LONG).show();
+            //acceptOrder("-KoL_oLayAbnAoyrgc2A");
+        } else {
+            Toast.makeText(MainActivity.this, "Something is wrong with authentication or profiles...",
+                    Toast.LENGTH_LONG).show();
+        }
 
         // Working out LOCATION updates
         mLocationCallback = new LocationCallback () {
@@ -104,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
                     mCurrentLocation = location;
 
                     // UpdateUserLocationOnDatabase
-                    updateUserLocationOnDatabase(getCurrentUserId(), mCurrentLocation);
+                    updateUserLocationOnDatabase(getCurrentFbUserId(), mCurrentLocation);
 
                     // Update UserInterface
                     updateUILocation(/*Maybe I'll add an overload here with the location*/);
@@ -114,6 +150,12 @@ public class MainActivity extends AppCompatActivity {
 
         //updateValuesFromBundle(savedInstanceState); // Really need to know what's going on here...
 
+
+        // OTHER TEMPORARY STUFF
+        FirebaseUser fbUser = mAuth.getCurrentUser();
+        String email = fbUser.getEmail();
+        TextView currentUserTxtV = (TextView) findViewById(R.id.currentUserTextView);
+        currentUserTxtV.setText(email);
 
 
     }
@@ -298,8 +340,8 @@ public class MainActivity extends AppCompatActivity {
     public void updateUserLocationOnDatabase(String userID, Location currentLocation) {
         double latitude = currentLocation.getLatitude();
         double longitude = currentLocation.getLongitude();
-        mDatabaseReference.child("users").child(userID).child("latitude").setValue(latitude);
-        mDatabaseReference.child("users").child(userID).child("longitude").setValue(longitude);
+        mDatabaseReference.child(mCurrentTypeOfUser).child(userID).child("latitude").setValue(latitude);
+        mDatabaseReference.child(mCurrentTypeOfUser).child(userID).child("longitude").setValue(longitude);
     }
 
 
@@ -413,9 +455,9 @@ public class MainActivity extends AppCompatActivity {
     // Add a form to sign in users with their email and password and call this new method when it is submitted. You can see an example in our quickstart sample.
 
 
-    public User getCurrentUser(FirebaseUser fbUser) {
+    public User getCurrentUserObj(FirebaseUser fbUser) {
 
-        //FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+        //FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUserObj();
 
 
         if (fbUser != null) {
@@ -440,7 +482,7 @@ public class MainActivity extends AppCompatActivity {
             return null;
         }
     }
-    public String getCurrentUserId() {
+    public String getCurrentFbUserId() {
         FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
 
         if (fbUser != null) {
@@ -467,7 +509,49 @@ public class MainActivity extends AppCompatActivity {
 
     }
     public void updateUI(FirebaseUser fbUser) {
-        User user = getCurrentUser(fbUser);
+        User user = getCurrentUserObj(fbUser);
+    }
+
+    public void pushOrderToFirebaseDatabase(String orderDescription) {
+        // Get a key so we can identify new order
+        String orderKey = mDatabaseReference.child(ORDERS_QUEUE).push().getKey();
+        // We finish pushing new order to the ORDERS QUEUE
+        mDatabaseReference.child(ORDERS_QUEUE).child(orderKey).setValue(true);
+        // We also tie new order to a list of orders on the client profile
+        mDatabaseReference.child(USERS).child(getCurrentFbUserId()).child("orders").child(orderKey).setValue(false);
+        // We also have to update ORDER ASSIGNMENT
+        mDatabaseReference.child(ORDER_ASSIGNMENT).child(orderKey).child(NO_ASSIGNED);
+        // And of course, we tie the description to the order
+        mDatabaseReference.child(ORDER_DESCRIPTIONS).child(orderKey).setValue(orderDescription);
+
+    }
+    public void acceptOrder(String orderKey) {
+        // WE ADD ORDER TO CURRENT MOTORGUY CURRENT ORDER FIELD
+        mDatabaseReference.child(MOTOR_GUYS).child(getCurrentFbUserId()).child("currentOrder").setValue(orderKey);
+        // WE DELETE ORDER FROM ORDERS QUEUE
+        mDatabaseReference.child(ORDERS_QUEUE).child(orderKey).removeValue();
+        // WE ADD ORDER TO ON WAY ORDERS
+        mDatabaseReference.child(ON_WAY_ORDERS).child(orderKey).setValue(true);
+        // WE UPDATE ORDER ASSIGNMENT WITH MOTOR GUY ID
+        mDatabaseReference.child(ORDER_ASSIGNMENT).child(orderKey).setValue(getCurrentFbUserId());
+
+
+        //NOTE: THIS METHOD WILL BE USED ASSUMING THAT THE CURRENT AUTHENTICATED INDIVIDUAL IS A MOTORGUY
+    }
+    public boolean isUserAClient() {
+        if(mDatabaseReference.child(USERS).child(getCurrentFbUserId()) != null) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public boolean isUserAMotorGuy() {
+        if(mDatabaseReference.child(MOTOR_GUYS).child(getCurrentFbUserId()) != null) {
+            return true;
+        } else {
+            return false;
+        }
+
     }
 
 }
