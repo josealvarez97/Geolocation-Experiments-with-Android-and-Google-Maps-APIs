@@ -1,5 +1,6 @@
 package io.google.devicetracker2;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -10,6 +11,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,14 +65,15 @@ public class MainActivity extends AppCompatActivity {
 
     // OTHER STUFF
     private static final String TAG = MainActivity.class.getSimpleName();
-    private static final String ORDERS_QUEUE = "ordersQueue";
-    private static final String ON_WAY_ORDERS = "onWayOrders";
-    private static final String USERS = "users";
-    private static final String MOTOR_GUYS = "motorGuys";
-    private static final String ORDER_ASSIGNMENT= "orderAssignment";
-    private static final String NO_ASSIGNED = "NO_ASSIGNED";
-    private static final String ORDER_DESCRIPTIONS = "orderDescriptions";
-    private String mCurrentTypeOfUser = "users";
+    public static final String ORDERS_QUEUE = "ordersQueue";
+    public static final String ON_WAY_ORDERS = "onWayOrders";
+    public static final String USERS = "users";
+    public static final String MOTOR_GUYS = "motorguys";
+    public static final String ORDER_ASSIGNMENT= "orderAssignment";
+    public static final String NO_ASSIGNED = "NO_ASSIGNED";
+    public static final String ORDER_DESCRIPTIONS = "orderDescriptions";
+    private String mCurrentTypeOfUser = "hola";
+    private TextView currentUserTxtV;
 
 
 
@@ -112,23 +115,13 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Adjusting a couple of things
-        if (isUserAClient()) {
-            mCurrentTypeOfUser = "users";
-            Toast.makeText(MainActivity.this, "USER IS CLIENT...",
-                    Toast.LENGTH_LONG).show();
-            //pushOrderToFirebaseDatabase("2 PIEZAS DEL POLLO MAS RICO POR FAVOR");
+        initializeUserDetails();
 
-        } else if (isUserAMotorGuy()) {
-            mCurrentTypeOfUser = "motorGuys";
-            Toast.makeText(MainActivity.this, "USER IS MOTOR GUY...",
-                    Toast.LENGTH_LONG).show();
-            //acceptOrder("-KoL_oLayAbnAoyrgc2A");
-        } else {
-            Toast.makeText(MainActivity.this, "Something is wrong with authentication or profiles...",
-                    Toast.LENGTH_LONG).show();
-        }
 
         // Working out LOCATION updates
+
+        //updateValuesFromBundle(savedInstanceState); // Really need to know what's going on here...
+
         mLocationCallback = new LocationCallback () {
             @Override
             public void onLocationResult(LocationResult locationResult) {
@@ -143,19 +136,37 @@ public class MainActivity extends AppCompatActivity {
                     updateUserLocationOnDatabase(getCurrentFbUserId(), mCurrentLocation);
 
                     // Update UserInterface
-                    updateUILocation(/*Maybe I'll add an overload here with the location*/);
+                    //View rootView = getWindow().getDecorView().getRootView();
+                    //View aview = findViewById(R.id.activity_main);
+                    //String name = rootView.toString();
+                    if(mCurrentTypeOfUser == USERS) {
+                        updateUILocation(/*Maybe I'll add an overload here with the location*/);
+                    }
+
+
                 }
             }
         };
-
-        //updateValuesFromBundle(savedInstanceState); // Really need to know what's going on here...
-
-
         // OTHER TEMPORARY STUFF
         FirebaseUser fbUser = mAuth.getCurrentUser();
         String email = fbUser.getEmail();
-        TextView currentUserTxtV = (TextView) findViewById(R.id.currentUserTextView);
+        //TextView currentUserTxtV = (TextView) findViewById(R.id.currentUserTextView);
+        currentUserTxtV = (TextView) findViewById(R.id.currentUserTextView);
         currentUserTxtV.setText(email);
+        if (isUserAClient()) {
+            Toast.makeText(MainActivity.this, "USER IS CLIENT...",
+                    Toast.LENGTH_LONG).show();
+            //pushOrderToFirebaseDatabase("2 PIEZAS DEL POLLO MAS RICO POR FAVOR");
+
+
+        } else if (isUserAMotorGuy()) {
+            Toast.makeText(MainActivity.this, "USER IS MOTOR GUY...",
+                    Toast.LENGTH_LONG).show();
+            //acceptOrder("-KoL_oLayAbnAoyrgc2A");
+        } else {
+            Toast.makeText(MainActivity.this, "Something is wrong with authentication or profiles...",
+                    Toast.LENGTH_LONG).show();
+        }
 
 
     }
@@ -539,19 +550,65 @@ public class MainActivity extends AppCompatActivity {
         //NOTE: THIS METHOD WILL BE USED ASSUMING THAT THE CURRENT AUTHENTICATED INDIVIDUAL IS A MOTORGUY
     }
     public boolean isUserAClient() {
-        if(mDatabaseReference.child(USERS).child(getCurrentFbUserId()) != null) {
+
+        if(mCurrentTypeOfUser == "users") {
             return true;
         } else {
             return false;
         }
     }
     public boolean isUserAMotorGuy() {
-        if(mDatabaseReference.child(MOTOR_GUYS).child(getCurrentFbUserId()) != null) {
+        if(mCurrentTypeOfUser == "motorguys") {
             return true;
         } else {
             return false;
         }
 
+    }
+
+    public void initializeUserDetails() {
+        //DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference clientRef = mDatabaseReference.child(USERS).child(getCurrentFbUserId());
+        clientRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // run some code
+                    mCurrentTypeOfUser = "users";
+                    currentUserTxtV.append(mCurrentTypeOfUser);
+                    //setContentView(R.layout.activity_credentials);
+
+                } else {
+                    mCurrentTypeOfUser = "motorguys";
+                    currentUserTxtV.append(mCurrentTypeOfUser);
+                    //setContentView(R.layout.activity_credentials);
+
+                }
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                //
+                //mCurrentTypeOfUser = "motorGuys";
+                currentUserTxtV.append("unknown");
+
+
+            }
+        });
+        // https://stackoverflow.com/questions/37397205/google-firebase-check-if-child-exists
+        //https://stackoverflow.com/questions/43959582/how-to-check-if-a-value-exists-in-firebase-database-android
+    }
+
+
+
+    public void makerOrdersClick(View view) {
+        Intent makerOrdersClickIntent = new Intent(this, MakeOrderActivity.class);
+        startActivity(makerOrdersClickIntent);
+        //pushOrderToFirebaseDatabase("Ya me tengo que ir!!!");
+    }
+    public void onWayOrdersClick(View view) {
+        Intent onWayOrdersIntent = new Intent(this, OnWayOrdersActivity.class);
+        startActivity(onWayOrdersIntent);
     }
 
 }

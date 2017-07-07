@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="io.google.devicetracker2.CredentialsActivity"
+    tools:layout_editor_absoluteY="81dp"
+    tools:layout_editor_absoluteX="0dp">
+
+    <Button
+        android:id="@+id/makeOrderButton"
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
+        android:text="makeOrderButton"
+        tools:layout_editor_absoluteY="91dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <Button
+        android:id="@+id/OnWayOrdersButton"
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
+        android:text="OnWayOrdersButton"
+        tools:layout_editor_absoluteY="139dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <Button
+        android:id="@+id/TrackOrders"
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
+        android:text="TrackOrders"
+        app:layout_constraintTop_toBottomOf="@+id/OnWayOrdersButton"
+        android:layout_marginTop="0dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+    <Button
+        android:id="@+id/configurationButton"
+        android:layout_width="368dp"
+        android:layout_height="wrap_content"
+        android:text="configurationButton"
+        app:layout_constraintTop_toBottomOf="@+id/TrackOrders"
+        android:onClick="onWayOrdersClick"
+        android:layout_marginTop="0dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent" />
+
+</android.support.constraint.ConstraintLayout>
