@@ -4,26 +4,24 @@ package io.google.devicetracker2;
 
 
 
-import android.app.ListActivity;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
-import android.content.Loader;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.List;
 
 //import static android.icu.text.RelativeDateTimeFormatter.Direction.THIS;
 
@@ -32,7 +30,8 @@ public class OnWayOrdersActivity  extends AppCompatActivity
 
     // This is the Adapter being used to display the list's data
     ArrayAdapter<String> mAdapter;
-    String[] mArray;
+    String[] mOrdersID_Array;
+    String[] mOrdersDescription_Array;
     private static final String TAG = FirebaseDatabaseManagement.class.getSimpleName();
 
     // These are the Contacts rows that we will retrieve
@@ -50,17 +49,14 @@ public class OnWayOrdersActivity  extends AppCompatActivity
         String[] kittens = new String[] {"Fluffy", "Muffy", "Tuffy"};
 
 
-        mFbDatabaseManagementObj = new FirebaseDatabaseManagement();
-        DatabaseReference userOnWayOrdersDatabaseReference = mFbDatabaseManagementObj.mDatabaseReference
-                .child("users")
-                .child(mFbDatabaseManagementObj.getCurrentFbUserId())
-                .child("orders");
+
 
 
         //List<String> ordersList = mFbDatabaseManagementObj.getListFromAPath(userOnWayOrdersDatabaseReference);
         //ArrayList<String> ordersArrayList = mFbDatabaseManagementObj
                 //.getChildArrayListFromReference(userOnWayOrdersDatabaseReference);
-        retrieveUserOnWayOrdersList(userOnWayOrdersDatabaseReference);
+        retrieveUserOnWayOrdersList();
+
         //mFbDatabaseManagementObj.getChildArrayListFromReference(userOnWayOrdersDatabaseReference);
         //String[] ordersArray = ordersArrayList.toArray(new String[ordersArrayList.size()]); // http://viralpatel.net/blogs/convert-arraylist-to-arrays-in-java/
 
@@ -80,19 +76,29 @@ public class OnWayOrdersActivity  extends AppCompatActivity
     }
 
 
-    public void retrieveUserOnWayOrdersList(DatabaseReference aReference) {
+    public void retrieveUserOnWayOrdersList() {
+
+        mFbDatabaseManagementObj = new FirebaseDatabaseManagement();
+        DatabaseReference userOnWayOrdersDatabaseReference = mFbDatabaseManagementObj.getUserOrdersReference();
         final ArrayList<String> ordersArrayList = new ArrayList<>();
-        aReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        final ArrayList<String> descriptionsArrayList = new ArrayList<>();
+
+
+
+        userOnWayOrdersDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot childrenSnapshot: dataSnapshot.getChildren()) {
                     // Handle children
                     ordersArrayList.add(childrenSnapshot.getKey());
+                    descriptionsArrayList.add(childrenSnapshot.getValue().toString());
+
                 }
 
                 // Next step...
                 //ordersArrayList.toArray(new String[ordersArrayList.size()]);
-                mArray = ordersArrayList.toArray(new String[ordersArrayList.size()]);
+                mOrdersID_Array = ordersArrayList.toArray(new String[ordersArrayList.size()]);
+                mOrdersDescription_Array = descriptionsArrayList.toArray(new String[descriptionsArrayList.size()]);
                 initializeListView();
             }
 
@@ -107,13 +113,67 @@ public class OnWayOrdersActivity  extends AppCompatActivity
         //return mArrayList;
     }
 
-    private void initializeListView() {
-        mAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1,
-                mArray/*, toViews, 0*/);
 
+    /*public void retrieveUserOrdersDescriptionArray() {
+
+        mFbDatabaseManagementObj = new FirebaseDatabaseManagement();
+        DatabaseReference userOnWayOrdersDatabaseReference = mFbDatabaseManagementObj.getUserOrdersReference();
+        final ArrayList<String> ordersArrayList = new ArrayList<>();
+
+
+        userOnWayOrdersDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot childrenSnapshot: dataSnapshot.getChildren()) {
+                    // Handle children
+                    ordersArrayList.add(childrenSnapshot.getKey());
+                    //descriptionsArrayList.add(childrenSnapshot.getValue().toString());
+
+                }
+
+                // Next step...
+                //ordersArrayList.toArray(new String[ordersArrayList.size()]);
+                mOrdersID_Array = ordersArrayList.toArray(new String[ordersArrayList.size()]);
+                initializeListView();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Getting childSnapshot failed, log a message
+                Log.w(TAG, "loadChild:onCancelled", databaseError.toException());
+                // ...
+            }
+        });
+
+        //return mArrayList;
+    }*/
+
+    private void initializeListView() {
+/*        mAdapter = new ArrayAdapter<>(this,
+                android.R.layout.simple_list_item_2,
+                android.R.id.text2,
+                mOrdersID_Array*//*, toViews, 0*//*);*/
+        mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_2, android.R.id.text1, mOrdersID_Array) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                TextView text1 = (TextView) view.findViewById(android.R.id.text1);
+                TextView text2 = (TextView) view.findViewById(android.R.id.text2);
+
+                text2.setText(mOrdersID_Array[position]);
+                text1.setText(mOrdersDescription_Array[position]);
+                return view;
+            }
+        };
         ListView listView = (ListView) findViewById(R.id.listview);
         listView.setAdapter(mAdapter);
+
+        listView.setOnItemClickListener(mMessageClickedHandler);
+
+
+
+
+
     }
 /*
 
@@ -144,5 +204,14 @@ public class OnWayOrdersActivity  extends AppCompatActivity
     }
 
 */
+// Create a message handling object as an anonymous class.
+private AdapterView.OnItemClickListener mMessageClickedHandler = new AdapterView.OnItemClickListener() {
+    // https://stackoverflow.com/questions/11256563/how-to-set-both-lines-of-a-listview-using-simple-list-item-2
+    public void onItemClick(AdapterView parent, View v, int position, long id) {
+        // Do something in response to the click
+        String orderId = ((TextView) v.findViewById(android.R.id.text2)).getText().toString();
+        Toast.makeText(OnWayOrdersActivity.this, orderId, Toast.LENGTH_SHORT).show();
+    }
+};
 
 }

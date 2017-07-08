@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static android.R.attr.order;
 import static android.R.attr.value;
 import static io.google.devicetracker2.MainActivity.NO_ASSIGNED;
 import static io.google.devicetracker2.MainActivity.ORDERS_QUEUE;
@@ -74,7 +75,7 @@ public class FirebaseDatabaseManagement {
         // We finish pushing new order to the ORDERS QUEUE
         mDatabaseReference.child("ordersQueue").child(orderKey).setValue(true);
         // We also tie new order to a list of orders on the client profile
-        mDatabaseReference.child(USERS).child(getCurrentFbUserId()).child("orders").child(orderKey).setValue(false);
+        mDatabaseReference.child(USERS).child(getCurrentFbUserId()).child("orders").child(orderKey).setValue(orderDescription);
         // We also have to update ORDER ASSIGNMENT
         mDatabaseReference.child(ORDER_ASSIGNMENT).child(orderKey).child(NO_ASSIGNED);
         // And of course, we tie the description to the order
@@ -149,6 +150,21 @@ public class FirebaseDatabaseManagement {
         });
 
         //return mArrayList;
+
+
+    }
+    public DatabaseReference getUserOrdersReference() {
+        DatabaseReference requestedReference = mDatabaseReference
+                .child("users")
+                .child(getCurrentFbUserId())
+                .child("orders");
+        return requestedReference;
+    }
+
+    public DatabaseReference getOrderDescriptionsReference() {
+        DatabaseReference requestedReference = mDatabaseReference
+                .child("orderDescriptions");
+        return requestedReference;
     }
 
 

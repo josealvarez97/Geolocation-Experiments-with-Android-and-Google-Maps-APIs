@@ -114,8 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        // Adjusting a couple of things
-        initializeUserDetails();
+
 
 
         // Working out LOCATION updates
@@ -148,6 +147,12 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         // OTHER TEMPORARY STUFF
+        // Adjusting a couple of things
+        initializeUserDetails();
+
+
+
+
         FirebaseUser fbUser = mAuth.getCurrentUser();
         String email = fbUser.getEmail();
         //TextView currentUserTxtV = (TextView) findViewById(R.id.currentUserTextView);
