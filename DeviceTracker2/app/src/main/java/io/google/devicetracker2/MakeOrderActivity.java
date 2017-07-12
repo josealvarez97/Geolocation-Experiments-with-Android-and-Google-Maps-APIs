@@ -27,7 +27,8 @@ public class MakeOrderActivity extends AppCompatActivity {
 
         mFbDatabaseManagmentObj.writeToDatabase();
 
-        mFbDatabaseManagmentObj.pushOrderToFirebaseDatabase("Dos piezas de buen pollo!");
+        mFbDatabaseManagmentObj.pushOrderToFirebaseDatabase("PROBANDO A LA 1 AM");
+
         /*Intent mainActivityIntent = new Intent(this, MainActivity.class);
         startActivity(mainActivityIntent);*/
     }

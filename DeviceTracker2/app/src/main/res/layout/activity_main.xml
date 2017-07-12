@@ -80,7 +80,8 @@
         android:layout_marginTop="14dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/configurationButton"
-        app:layout_constraintVertical_bias="0.974" />
+        app:layout_constraintVertical_bias="0.974"
+        android:onClick="trackOrdersClick"/>
 
     <Button
         android:id="@+id/configurationButton"

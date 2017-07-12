@@ -1,6 +1,5 @@
 package io.google.devicetracker2;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -606,6 +605,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
+
+
+    // CLICK EVENTS
     public void makerOrdersClick(View view) {
         Intent makerOrdersClickIntent = new Intent(this, MakeOrderActivity.class);
         startActivity(makerOrdersClickIntent);
@@ -614,6 +616,10 @@ public class MainActivity extends AppCompatActivity {
     public void onWayOrdersClick(View view) {
         Intent onWayOrdersIntent = new Intent(this, OnWayOrdersActivity.class);
         startActivity(onWayOrdersIntent);
+    }
+    public void trackOrdersClick(View view) {
+        Intent trackOrdersIntent = new Intent(this, TrackOrdersActivity.class);
+        startActivity(trackOrdersIntent);
     }
 
 }

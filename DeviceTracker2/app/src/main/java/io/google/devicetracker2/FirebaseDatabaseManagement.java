@@ -1,5 +1,6 @@
 package io.google.devicetracker2;
 
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import com.google.android.gms.tagmanager.Container;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static android.R.attr.order;
+import static android.R.attr.start;
 import static android.R.attr.value;
 import static io.google.devicetracker2.MainActivity.NO_ASSIGNED;
 import static io.google.devicetracker2.MainActivity.ORDERS_QUEUE;
@@ -48,6 +50,8 @@ public class FirebaseDatabaseManagement {
     public static final String ORDER_ASSIGNMENT= "orderAssignment";
     public static final String NO_ASSIGNED = "NO_ASSIGNED";
     public static final String ORDER_DESCRIPTIONS = "orderDescriptions";
+    public static final String ORDER_OBJS = "ordersOBJs";
+    public static final String USER_ORDEROBJS = "user-ordersOBJs";
     private String mCurrentTypeOfUser = "hola";
 
 
@@ -73,13 +77,81 @@ public class FirebaseDatabaseManagement {
         // Get a key so we can identify new order
         String orderKey = mDatabaseReference.child("ordersQueue").push().getKey();
         // We finish pushing new order to the ORDERS QUEUE
-        mDatabaseReference.child("ordersQueue").child(orderKey).setValue(true);
+        mDatabaseReference.child("ordersQueue").child(orderKey).setValue(getCurrentFbUserId());
         // We also tie new order to a list of orders on the client profile
         mDatabaseReference.child(USERS).child(getCurrentFbUserId()).child("orders").child(orderKey).setValue(orderDescription);
         // We also have to update ORDER ASSIGNMENT
         mDatabaseReference.child(ORDER_ASSIGNMENT).child(orderKey).child(NO_ASSIGNED);
         // And of course, we tie the description to the order
         mDatabaseReference.child(ORDER_DESCRIPTIONS).child(orderKey).setValue(orderDescription);
+
+
+        // WRITE OBJECT
+        Order newOrder = new Order(orderKey, getCurrentFbUserId(), NO_ASSIGNED, orderDescription);
+        Map<String, Object> newOrderValues = newOrder.toMap();
+        Map<String, Object> childUpdates = new HashMap<>();
+        childUpdates.put("/ordersOBJs/"+orderKey, newOrderValues);
+        childUpdates.put("/user-ordersOBJs/"+getCurrentFbUserId()+"/"+orderKey, newOrderValues);
+
+        mDatabaseReference.updateChildren(childUpdates);
+
+        startAcceptOrderProcess(orderKey);
+    }
+
+    public void startAcceptOrderProcess(final String orderKey) {
+        DatabaseReference orderQueueRef = mDatabaseReference.child("ordersQueue");
+        final String ordKey = orderKey;
+        orderQueueRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String acceptedOrderUserId = dataSnapshot.child(ordKey).getValue(String.class);
+                acceptOrder(ordKey, "wOuifegVftaz3xbpwqErAY7qSt03", acceptedOrderUserId);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+    public void acceptOrder(String orderKey) {
+        // We save userIdValue
+        String acceptedOrderUserId = mDatabaseReference.child(ORDERS_QUEUE).child(orderKey).toString();
+
+        // WE ADD ORDER TO CURRENT MOTORGUY CURRENT ORDER FIELD
+        mDatabaseReference.child(MOTOR_GUYS).child(getCurrentFbUserId()).child("currentOrder").setValue(orderKey);
+        // WE DELETE ORDER FROM ORDERS QUEUE
+        mDatabaseReference.child(ORDERS_QUEUE).child(orderKey).removeValue();
+        // WE ADD ORDER TO ON WAY ORDERS
+        mDatabaseReference.child(ON_WAY_ORDERS).child(orderKey).setValue(false);
+        // WE UPDATE ORDER ASSIGNMENT WITH MOTOR GUY ID
+        mDatabaseReference.child(ORDER_ASSIGNMENT).child(orderKey).setValue(getCurrentFbUserId());
+
+
+        //NOTE: THIS METHOD WILL BE USED ASSUMING THAT THE CURRENT AUTHENTICATED INDIVIDUAL IS A MOTORGUY
+        // Update motorGuyAssigned fields
+        mDatabaseReference.child("ordersOBJs").child(orderKey).child("motorGuyAssigned").setValue(getCurrentFbUserId());
+        mDatabaseReference.child("user-ordersOBJs").child(acceptedOrderUserId).child(orderKey).child("motorGuyAssigned").setValue(getCurrentFbUserId());
+    }
+
+    public void acceptOrder(String orderKey, String motorGuyId, String acceptedOrderUserId) {
+        // We save userIdValue
+        //String acceptedOrderUserId = mDatabaseReference.child(ORDERS_QUEUE).child(orderKey).toString();
+
+        // WE ADD ORDER TO CURRENT MOTORGUY CURRENT ORDER FIELD
+        mDatabaseReference.child(MOTOR_GUYS).child(motorGuyId).child("currentOrder").setValue(orderKey);
+        // WE DELETE ORDER FROM ORDERS QUEUE
+        mDatabaseReference.child(ORDERS_QUEUE).child(orderKey).removeValue();
+        // WE ADD ORDER TO ON WAY ORDERS
+        mDatabaseReference.child(ON_WAY_ORDERS).child(orderKey).setValue(false);
+        // WE UPDATE ORDER ASSIGNMENT WITH MOTOR GUY ID
+        mDatabaseReference.child(ORDER_ASSIGNMENT).child(orderKey).setValue(motorGuyId);
+
+
+        //NOTE: THIS METHOD WILL BE USED ASSUMING THAT THE CURRENT AUTHENTICATED INDIVIDUAL IS A MOTORGUY
+        // Update motorGuyAssigned fields
+        mDatabaseReference.child("ordersOBJs").child(orderKey).child("motorGuyAssigned").setValue(motorGuyId);
+        mDatabaseReference.child("user-ordersOBJs").child(acceptedOrderUserId).child(orderKey).child("motorGuyAssigned").setValue(motorGuyId);
     }
 
     public String getCurrentFbUserId() {
@@ -164,6 +236,31 @@ public class FirebaseDatabaseManagement {
     public DatabaseReference getOrderDescriptionsReference() {
         DatabaseReference requestedReference = mDatabaseReference
                 .child("orderDescriptions");
+        return requestedReference;
+    }
+
+    public DatabaseReference getOrderAssignmentReference() {
+        DatabaseReference requestedReference = mDatabaseReference
+                .child(ORDER_ASSIGNMENT);
+
+        return requestedReference;
+    }
+
+    public DatabaseReference getRootReference() {
+        return mDatabaseReference;
+    }
+
+    public DatabaseReference getOrdersObjsReference() {
+        DatabaseReference requestedReference = mDatabaseReference
+                .child(ORDER_OBJS);
+
+        return requestedReference;
+    }
+
+    public DatabaseReference getMotorGuysReference() {
+        DatabaseReference requestedReference = mDatabaseReference
+                .child(MOTOR_GUYS);
+
         return requestedReference;
     }
 

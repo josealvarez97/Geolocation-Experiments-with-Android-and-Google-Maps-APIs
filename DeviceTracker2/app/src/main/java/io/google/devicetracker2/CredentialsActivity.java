@@ -25,6 +25,7 @@ public class CredentialsActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     public static final String VALID_EMAIL = "valid_email";
     public static final String VALID_PASSWORD = "valid_password";
+    public static final String TYPE_OF_INDIVIDUAL = "type_of_individual";
     //private boolean mSuccesfullAuth = false;
     private String mEmail;
     private String mPassword;
@@ -84,6 +85,7 @@ public class CredentialsActivity extends AppCompatActivity {
 
         credentialsIntent.putExtra(VALID_EMAIL, mEmail);
         credentialsIntent.putExtra(VALID_PASSWORD, mPassword);
+        credentialsIntent.putExtra(TYPE_OF_INDIVIDUAL, "");
         startActivity(credentialsIntent);
     }
 
