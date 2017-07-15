@@ -264,6 +264,12 @@ public class FirebaseDatabaseManagement {
         return requestedReference;
     }
 
+    public DatabaseReference getProductOBJsReference() {
+        DatabaseReference requestedReference = mDatabaseReference
+                .child("productsOBJs");
+        return requestedReference;
+    }
+
 
 
 }

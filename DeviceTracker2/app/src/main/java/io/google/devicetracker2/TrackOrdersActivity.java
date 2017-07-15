@@ -2,6 +2,7 @@
 
 package io.google.devicetracker2;
 
+import android.provider.ContactsContract;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -18,6 +19,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.google.devicetracker2.R.id.map;
 
@@ -35,6 +38,7 @@ to the current Activity*/
     //ArrayList<String> mUserOnWayOrders;
     //Map<String, String> mOrdersDescriptions;
     //Map<String, String> mOrdersMotorguys;
+    Map<String, MotorGuy> mMotorGuysMap;
     ArrayList<Order> mUserOrdersList;
     FirebaseDatabaseManagement mFbDatabaseManagementObj /*= new FirebaseDatabaseManagement()*/;
 
@@ -70,16 +74,14 @@ to the current Activity*/
 
         for (Order order : mUserOrdersList) {
 
-/*            Double lat = Double.parseDouble(motorGuysRef.child(order.motorGuyAssigned)
-                    .child("latitude").toString());
-            Double lng = Double.parseDouble(motorGuysRef.child(order.motorGuyAssigned)
-                    .child("longitude").toString());
+            Double lat = Double.parseDouble(mMotorGuysMap.get(order.orderId).latitude);
+            Double lng = Double.parseDouble(mMotorGuysMap.get(order.orderId).longitude);
             LatLng orderPosition = new LatLng(lat, lng);
 
             googleMap.addMarker(new MarkerOptions()
                     .position(orderPosition)
                     .title(order.orderId)
-                    .snippet(order.orderDescription));*/
+                    .snippet(order.orderDescription));
         }
 
 
@@ -130,6 +132,34 @@ to the current Activity*/
                         mUserOrdersList.add(userOrder);
                     }
                 }
+                retrieveMotorguys();
+                //initializeMapFragment();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    public void retrieveMotorguys() {
+        mFbDatabaseManagementObj = new FirebaseDatabaseManagement();
+        mMotorGuysMap = new HashMap<>();
+        DatabaseReference motorguysRef = mFbDatabaseManagementObj.getMotorGuysReference();
+
+        motorguysRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (Order order : mUserOrdersList) {
+                    String lat = dataSnapshot.child(order.motorGuyAssigned)
+                            .child("latitude").getValue().toString();
+                    String lng = dataSnapshot.child(order.motorGuyAssigned)
+                            .child("longitude").getValue().toString();
+                    MotorGuy aMotorguy = new MotorGuy(order.motorGuyAssigned, lat, lng);
+                    mMotorGuysMap.put(order.orderId, aMotorguy);
+                }
                 initializeMapFragment();
             }
 
@@ -138,6 +168,8 @@ to the current Activity*/
 
             }
         });
+
+
 
     }
 
@@ -171,7 +203,7 @@ to the current Activity*/
                 .title(order.orderId)
                 .snippet(order.orderDescription));
 
-        
+
         assignedMotorGuyRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
