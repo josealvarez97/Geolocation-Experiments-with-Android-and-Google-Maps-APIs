@@ -42,10 +42,19 @@ public class MakeOrderActivity extends FragmentActivity {
 
     }
 
+    /**
+     * FIRST: retrieveProductMap or List...
+     * SECOND: initializeViewPager
+     */
     public void triggerProcesses() {
         retrieveProductMap();
     }
 
+    /**
+     * Sets a DemoCollectionPagerAdapter (which extends FragmentStatePagerAdapter) and sets
+     * it as adapter for the ViewPager (which is a fragment_collection_object.xml)
+     * declared in the activity_make_order.xml
+     */
     public void initialiazeViewPager() {
         // ViewPager and its adapters use support library
         // fragments, so use getSupportFragmentManager
@@ -66,6 +75,11 @@ public class MakeOrderActivity extends FragmentActivity {
         });*/
     }
 
+    /**
+     * Adds a ListenerForSingleValueEvent to a reference of productsOBJs in the fb database
+     * For every product that is retrieved from this reference we add it to mProductList
+     * Finally, we INITIALIZE ViewPager with initializeViewPager()
+     */
     public void retrieveProductMap() {
         mFbDatabaseManagmentObj = new FirebaseDatabaseManagement();
         mProductList = new ArrayList<>();
@@ -91,15 +105,26 @@ public class MakeOrderActivity extends FragmentActivity {
 
     }
 
+    /**
+     * Uses mFbDatabaseManagementObj.pushOrder...
+     * FIX: It should better trigger a process in which we collect all the products from the cart
+     * and make them an order
+     * @param view
+     */
     public void pushOrder(View view) {
 
 
-        mFbDatabaseManagmentObj.writeToDatabase();
+        //mFbDatabaseManagmentObj.writeToDatabase();
+
+        // NOTA: LA LOGICA AQUI HA DE CAMBIAR. Es necesario recuperar la informacion en el carrito y armar la orden en base a dicha informacion.
+        // Probablemente utilizar un string con los detalles y mandarlo como parametro. Detalles que puedan ser presentados de forma agradable al usuario y al motorizado
 
         mFbDatabaseManagmentObj.pushOrderToFirebaseDatabase("PROBANDO A LA 1 AM");
 
         /*Intent mainActivityIntent = new Intent(this, MainActivity.class);
         startActivity(mainActivityIntent);*/
+
+
     }
 
     //When requested, this adapter returns a DemoObjectFragment,
@@ -114,15 +139,23 @@ public class MakeOrderActivity extends FragmentActivity {
 
 
         FirebaseDatabaseManagement mFbDatabaseManagementObj;
-        Map<String, Product> productsMap;
-        ArrayList<Product> mProductList;
+        Map<String, Product> productsMap; // not important... just an experiment
+        ArrayList<Product> mProductList; // THIS IS THE ONE USED
 
+        /**
+         * The important thing of this contructor is the parameter 'productList' that it receives,
+         * because such parameter contains the complete list of products that we are working with.
+         * (Or the amount we will be working with. Probably we'll have to work with chunks of products
+         * in order to avoid a saturation)
+         * @param fm
+         * @param productList
+         */
         public DemoCollectionPagerAdapter(android.support.v4.app.FragmentManager fm, ArrayList<Product> productList) {
             super(fm);
             mProductList = productList;
             //retrieveProductMap();
 
-            productsMap = new HashMap<>();
+            /*productsMap = new HashMap<>();
             Product alMacarone = new Product("sfsdfsdfs", "comida", "Pizza Al Macarone", "14*15 pulgadas", "15", "https://directorio.guatemala.com/custom/domain_1/image_files/sitemgr_photo_27672.jpg");
             Product pinulito = new Product("gdfgfdfgg", "comida", "Pollo Pinulito", "14*15 pulgadas", "15", "https://directorio.guatemala.com/custom/domain_1/image_files/sitemgr_photo_27672.jpg");
             Product sushiito = new Product("ergxfdfgr", "comida", "Sushiito", "14*15 pulgadas", "15", "https://directorio.guatemala.com/custom/domain_1/image_files/sitemgr_photo_27672.jpg");
@@ -131,7 +164,7 @@ public class MakeOrderActivity extends FragmentActivity {
             productsMap.put(alMacarone.productID, alMacarone);
             productsMap.put(pinulito.productID, pinulito);
             productsMap.put(sushiito.productID, sushiito);
-            productsMap.put(granjero.productID, granjero);
+            productsMap.put(granjero.productID, granjero);*/
 
         }
 
@@ -144,7 +177,7 @@ public class MakeOrderActivity extends FragmentActivity {
             // Our object is just an integer :-P
             //args.putInt(DemoObjectFragment.ARG_OBJECT, i + 1);
 
-            Product product = mProductList.get(i);
+            Product product = mProductList.get(i); // mProductList ya contiene todos los productos. Objeto enviado como parametro a la instancia de esta clase.
             //Product product = productsMap.get("sfsdfsdfs");
             args.putString(DemoObjectFragment.ARG_OBJECT, product.productName);
             args.putString(DemoObjectFragment.ARG_PRODUCT_NAME, product.productName);
@@ -187,6 +220,10 @@ public class MakeOrderActivity extends FragmentActivity {
             @Override
             public View onCreateView(LayoutInflater inflater,
                                      ViewGroup container, Bundle savedInstanceState) {
+                // HERE WE BASICALLY DESIGN THE FRAGMENT THAT CONTAINS THE PRODUCT INFORMATION
+                // (And also add the button event to the btn contained in the fratment. Add to cart button btw)
+
+
                 // The last two arguments ensure LayoutParams are inflated
                 // properly
                 final View rootView = inflater.inflate(

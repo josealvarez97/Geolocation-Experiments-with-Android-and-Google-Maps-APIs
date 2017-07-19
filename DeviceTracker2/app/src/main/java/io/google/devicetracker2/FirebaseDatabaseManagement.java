@@ -17,14 +17,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static android.R.attr.order;
+/*import static android.R.attr.order;
 import static android.R.attr.start;
 import static android.R.attr.value;
 import static io.google.devicetracker2.MainActivity.NO_ASSIGNED;
 import static io.google.devicetracker2.MainActivity.ORDERS_QUEUE;
 import static io.google.devicetracker2.MainActivity.ORDER_ASSIGNMENT;
 import static io.google.devicetracker2.MainActivity.ORDER_DESCRIPTIONS;
-import static io.google.devicetracker2.MainActivity.USERS;
+import static io.google.devicetracker2.MainActivity.USERS;*/
 
 /**
  * Created by Fed2 on 06/07/2017.

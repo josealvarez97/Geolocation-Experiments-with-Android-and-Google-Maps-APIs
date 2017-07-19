@@ -39,6 +39,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import static io.google.devicetracker2.CredentialsActivity.TYPE_OF_INDIVIDUAL;
 import static io.google.devicetracker2.CredentialsActivity.VALID_EMAIL;
 import static io.google.devicetracker2.CredentialsActivity.VALID_PASSWORD;
 
@@ -64,13 +65,13 @@ public class MainActivity extends AppCompatActivity {
 
     // OTHER STUFF
     private static final String TAG = MainActivity.class.getSimpleName();
-    public static final String ORDERS_QUEUE = "ordersQueue";
-    public static final String ON_WAY_ORDERS = "onWayOrders";
-    public static final String USERS = "users";
-    public static final String MOTOR_GUYS = "motorguys";
-    public static final String ORDER_ASSIGNMENT= "orderAssignment";
-    public static final String NO_ASSIGNED = "NO_ASSIGNED";
-    public static final String ORDER_DESCRIPTIONS = "orderDescriptions";
+    private static final String ORDERS_QUEUE = "ordersQueue";
+    private static final String ON_WAY_ORDERS = "onWayOrders";
+    private static final String USERS = "users";
+    private static final String MOTOR_GUYS = "motorguys";
+    private static final String ORDER_ASSIGNMENT= "orderAssignment";
+    private static final String NO_ASSIGNED = "NO_ASSIGNED";
+    private static final String ORDER_DESCRIPTIONS = "orderDescriptions";
     private String mCurrentTypeOfUser = "hola";
     private TextView currentUserTxtV;
 
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intentSent = getIntent();
         String validatedEmail = intentSent.getStringExtra(VALID_EMAIL);
         String validatedPassword = intentSent.getStringExtra(VALID_PASSWORD);
+        mCurrentTypeOfUser = intentSent.getStringExtra(TYPE_OF_INDIVIDUAL);
 
 
 
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         //createAccount("alvarez.jo.2017@gmail.com", "superPikachu");
         signIn(validatedEmail, validatedPassword);
+
         //FirebaseUser theFbUser = mAuth.getCurrentUserObj();
 
 
@@ -147,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         };
         // OTHER TEMPORARY STUFF
         // Adjusting a couple of things
-        initializeUserDetails();
+//        initializeUserDetails();
 
 
 
@@ -553,16 +556,19 @@ public class MainActivity extends AppCompatActivity {
 
         //NOTE: THIS METHOD WILL BE USED ASSUMING THAT THE CURRENT AUTHENTICATED INDIVIDUAL IS A MOTORGUY
     }
+
+
+
     public boolean isUserAClient() {
 
-        if(mCurrentTypeOfUser == "users") {
+        if(mCurrentTypeOfUser.equals(USERS)) {
             return true;
         } else {
             return false;
         }
     }
     public boolean isUserAMotorGuy() {
-        if(mCurrentTypeOfUser == "motorguys") {
+        if(mCurrentTypeOfUser.equals(MOTOR_GUYS)) {
             return true;
         } else {
             return false;
@@ -570,7 +576,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void initializeUserDetails() {
+/*    public void initializeUserDetails() {
         //DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
         DatabaseReference clientRef = mDatabaseReference.child(USERS).child(getCurrentFbUserId());
         clientRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -601,7 +607,7 @@ public class MainActivity extends AppCompatActivity {
         });
         // https://stackoverflow.com/questions/37397205/google-firebase-check-if-child-exists
         //https://stackoverflow.com/questions/43959582/how-to-check-if-a-value-exists-in-firebase-database-android
-    }
+    }*/
 
 
 
