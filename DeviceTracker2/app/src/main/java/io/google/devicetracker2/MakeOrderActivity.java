@@ -8,8 +8,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -33,6 +36,7 @@ public class MakeOrderActivity extends FragmentActivity {
         mFbDatabaseManagmentObj = new FirebaseDatabaseManagement();
 
 
+
         triggerProcesses();
 
 
@@ -50,6 +54,16 @@ public class MakeOrderActivity extends FragmentActivity {
                         getSupportFragmentManager(), mProductList);
         mViewPager = (ViewPager) findViewById(R.id.pager);
         mViewPager.setAdapter(mDemoCollectionPagerAdapter);
+
+
+/*        Button btnAddToCart = (Button) findViewById(R.id.btn_add_to_cart);
+        btnAddToCart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MakeOrderActivity.this, "Hola", Toast.LENGTH_LONG).show();
+                mViewPager.setCurrentItem(0);
+            }
+        });*/
     }
 
     public void retrieveProductMap() {
@@ -138,6 +152,7 @@ public class MakeOrderActivity extends FragmentActivity {
             args.putString(DemoObjectFragment.ARG_PRODUCT_DESCRIPTION, product.description);
             args.putString(DemoObjectFragment.ARG_PRODUCT_PRICE, product.price);
             args.putString(DemoObjectFragment.ARG_PRODUCT_IMAGE_URL, product.imageURL);
+            args.putString(DemoObjectFragment.ARG_PRODUCT_ID, product.productID);
 
             fragment.setArguments(args);
 
@@ -167,15 +182,16 @@ public class MakeOrderActivity extends FragmentActivity {
             public static final String ARG_PRODUCT_DESCRIPTION = "productDescription";
             public static final String ARG_PRODUCT_PRICE = "productPrice";
             public static final String ARG_PRODUCT_IMAGE_URL = "productImageURL";
+            public static final String ARG_PRODUCT_ID = "productID";
 
             @Override
             public View onCreateView(LayoutInflater inflater,
                                      ViewGroup container, Bundle savedInstanceState) {
                 // The last two arguments ensure LayoutParams are inflated
                 // properly
-                View rootView = inflater.inflate(
+                final View rootView = inflater.inflate(
                         R.layout.fragment_collection_object, container, false);
-                Bundle args = getArguments();
+                final Bundle args = getArguments();
                 ((TextView) rootView.findViewById(R.id.txtProductName)).setText(
                         args.getString(ARG_PRODUCT_NAME));
 
@@ -200,12 +216,25 @@ public class MakeOrderActivity extends FragmentActivity {
                     ((Button) rootView.findViewById(R.id.btnProductImage)).setText("probando");
 
                 }*/
+                Button btnAddToCart = (Button) rootView.findViewById(R.id.btn_add_to_cart);
+                btnAddToCart.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Toast.makeText(getContext(), args.getString(ARG_PRODUCT_ID) + "added to Cart", Toast.LENGTH_LONG).show();
+                        FirebaseDatabaseManagement fbDatabaseManagementObj = new FirebaseDatabaseManagement();
+                        fbDatabaseManagementObj.addProductToCart(args.getString(ARG_PRODUCT_ID));
+                    }
+                });
 
 
                 return rootView;
 
 
             }
+
+
+
+
         }
     }
 }

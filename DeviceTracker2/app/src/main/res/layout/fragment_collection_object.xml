@@ -54,10 +54,10 @@
 
 
     <Button
-        android:id="@+id/btnProductImage"
+        android:id="@+id/btn_add_to_cart"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
+        android:text="Add to cart" />
 
     <ImageView
         android:id="@+id/imvProductImage"

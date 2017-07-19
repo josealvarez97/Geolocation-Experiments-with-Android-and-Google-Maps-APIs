@@ -73,6 +73,10 @@ public class FirebaseDatabaseManagement {
         mMyRef.setValue("Hello, World!");
     }
 
+    public void addProductToCart(String productID) {
+        mDatabaseReference.child(USERS).child(getCurrentFbUserId()).child("userCart").push().setValue(productID);
+    }
+
     public void pushOrderToFirebaseDatabase(String orderDescription) {
         // Get a key so we can identify new order
         String orderKey = mDatabaseReference.child("ordersQueue").push().getKey();
@@ -95,7 +99,9 @@ public class FirebaseDatabaseManagement {
 
         mDatabaseReference.updateChildren(childUpdates);
 
-        startAcceptOrderProcess(orderKey);
+        startAcceptOrderProcess(orderKey); // I think I must delete this later
+
+        // I also must delete cart after pushing an order
     }
 
     public void startAcceptOrderProcess(final String orderKey) {
@@ -269,6 +275,9 @@ public class FirebaseDatabaseManagement {
                 .child("productsOBJs");
         return requestedReference;
     }
+
+
+
 
 
 
