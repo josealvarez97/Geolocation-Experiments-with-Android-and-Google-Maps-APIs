@@ -22,7 +22,8 @@
             android:value="@integer/google_play_services_version" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBxJ5kJ_BM-yh4A5tQmdNkJPlRGJ6sLqaI"/>
+            android:value="AIzaSyBxJ5kJ_BM-yh4A5tQmdNkJPlRGJ6sLqaI" />
+
         <activity android:name=".MainActivity" />
         <activity
             android:name=".LoginActivity"
@@ -36,7 +37,8 @@
         </activity>
         <activity android:name=".MakeOrderActivity" />
         <activity android:name=".OnWayOrdersActivity" />
-        <activity android:name=".TrackOrdersActivity"></activity>
+        <activity android:name=".TrackOrdersActivity" />
+        <activity android:name=".MotorGuysMainActivity"></activity>
     </application>
 
 </manifest>

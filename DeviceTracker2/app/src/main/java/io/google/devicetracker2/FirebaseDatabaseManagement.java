@@ -1,5 +1,6 @@
 package io.google.devicetracker2;
 
+import android.location.Location;
 import android.provider.ContactsContract;
 import android.util.Log;
 
@@ -277,6 +278,13 @@ public class FirebaseDatabaseManagement {
     }
 
 
+
+    public void updateUserLocationOnDatabase(String userID, Location currentLocation) {
+        double latitude = currentLocation.getLatitude();
+        double longitude = currentLocation.getLongitude();
+        mDatabaseReference.child(FirebaseDatabaseManagement.MOTOR_GUYS).child(userID).child("latitude").setValue(latitude);
+        mDatabaseReference.child(FirebaseDatabaseManagement.MOTOR_GUYS).child(userID).child("longitude").setValue(longitude);
+    }
 
 
 

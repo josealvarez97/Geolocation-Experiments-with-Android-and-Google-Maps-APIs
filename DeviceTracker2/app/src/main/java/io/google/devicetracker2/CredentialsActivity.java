@@ -93,12 +93,23 @@ public class CredentialsActivity extends AppCompatActivity {
     }
 
     public void validateAndPassInformation(String typeOfIndividual) {
-        Intent credentialsIntent = new Intent(this, MainActivity.class);
+        Intent credentialsForUsersIntent = new Intent(this, MainActivity.class);
+        Intent credentialsForMGuysIntent = new Intent(this, MotorGuysMainActivity.class);
 
-        credentialsIntent.putExtra(VALID_EMAIL, mEmail);
-        credentialsIntent.putExtra(VALID_PASSWORD, mPassword);
-        credentialsIntent.putExtra(TYPE_OF_INDIVIDUAL, typeOfIndividual);
-        startActivity(credentialsIntent);
+        if(typeOfIndividual.equals(USERS)) {
+
+            credentialsForUsersIntent.putExtra(VALID_EMAIL, mEmail);
+            credentialsForUsersIntent.putExtra(VALID_PASSWORD, mPassword);
+            credentialsForUsersIntent.putExtra(TYPE_OF_INDIVIDUAL, typeOfIndividual);
+            startActivity(credentialsForUsersIntent);
+
+        } else if (typeOfIndividual.equals(MOTOR_GUYS)){
+            startActivity(credentialsForMGuysIntent);
+        }
+
+
+
+
     }
 
 
