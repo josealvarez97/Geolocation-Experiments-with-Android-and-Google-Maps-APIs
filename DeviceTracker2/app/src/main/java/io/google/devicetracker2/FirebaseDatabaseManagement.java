@@ -2,6 +2,7 @@ package io.google.devicetracker2;
 
 import android.location.Location;
 import android.provider.ContactsContract;
+import android.text.method.HideReturnsTransformationMethod;
 import android.util.Log;
 
 import com.google.android.gms.tagmanager.Container;
@@ -100,7 +101,7 @@ public class FirebaseDatabaseManagement {
 
         mDatabaseReference.updateChildren(childUpdates);
 
-        startAcceptOrderProcess(orderKey); // I think I must delete this later
+        //startAcceptOrderProcess(orderKey); // I think I must delete this later
 
         // I also must delete cart after pushing an order
     }
@@ -274,6 +275,14 @@ public class FirebaseDatabaseManagement {
     public DatabaseReference getProductOBJsReference() {
         DatabaseReference requestedReference = mDatabaseReference
                 .child("productsOBJs");
+        return requestedReference;
+    }
+
+    public DatabaseReference getOrdersQueueReference() {
+        DatabaseReference requestedReference = mDatabaseReference
+                .child(ORDERS_QUEUE);
+
+
         return requestedReference;
     }
 

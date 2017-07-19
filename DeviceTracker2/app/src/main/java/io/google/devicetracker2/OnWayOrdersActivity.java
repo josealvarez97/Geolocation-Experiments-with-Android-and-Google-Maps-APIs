@@ -32,7 +32,7 @@ public class OnWayOrdersActivity  extends AppCompatActivity
     ArrayAdapter<String> mAdapter;
     String[] mOrdersID_Array;
     String[] mOrdersDescription_Array;
-    private static final String TAG = FirebaseDatabaseManagement.class.getSimpleName();
+    private static final String TAG = OnWayOrdersActivity.class.getSimpleName();
 
     // These are the Contacts rows that we will retrieve
     //static final String[] PROJECTION = new String[] {"1110616", "Jose" };
@@ -153,7 +153,7 @@ public class OnWayOrdersActivity  extends AppCompatActivity
                 android.R.layout.simple_list_item_2,
                 android.R.id.text2,
                 mOrdersID_Array*//*, toViews, 0*//*);*/
-        mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_2, android.R.id.text1, mOrdersID_Array) {
+        mAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_2, android.R.id.text1, mOrdersID_Array) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 View view = super.getView(position, convertView, parent);

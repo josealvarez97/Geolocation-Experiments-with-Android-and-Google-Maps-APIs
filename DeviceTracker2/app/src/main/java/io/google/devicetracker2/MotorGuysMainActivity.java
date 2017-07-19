@@ -1,5 +1,6 @@
 package io.google.devicetracker2;
 
+import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -8,6 +9,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.CommonStatusCodes;
@@ -237,6 +239,17 @@ public class MotorGuysMainActivity extends AppCompatActivity {
          // UpdateUI to match restored state
          // updateUI
      }
+
+
+
+
+
+     // CLICK EVENTS
+    public void ordersQueueButtonClick(View view) {
+        Intent ordersQueueIntent = new Intent(this, OrdersQueueActivity.class);
+
+        startActivity(ordersQueueIntent);
+    }
 
 
 

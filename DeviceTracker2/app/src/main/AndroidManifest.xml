@@ -38,7 +38,8 @@
         <activity android:name=".MakeOrderActivity" />
         <activity android:name=".OnWayOrdersActivity" />
         <activity android:name=".TrackOrdersActivity" />
-        <activity android:name=".MotorGuysMainActivity"></activity>
+        <activity android:name=".MotorGuysMainActivity" />
+        <activity android:name=".OrdersQueueActivity"></activity>
     </application>
 
 </manifest>

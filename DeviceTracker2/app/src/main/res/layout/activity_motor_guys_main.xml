@@ -6,4 +6,12 @@
     android:layout_height="match_parent"
     tools:context="io.google.devicetracker2.MotorGuysMainActivity">
 
+    <Button
+        android:id="@+id/btnOrdersQueue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="OrdersQueue"
+        tools:layout_editor_absoluteX="148dp"
+        tools:layout_editor_absoluteY="245dp"
+        android:onClick="ordersQueueButtonClick"/>
 </android.support.constraint.ConstraintLayout>
